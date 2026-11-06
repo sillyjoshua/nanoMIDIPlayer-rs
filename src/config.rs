@@ -241,10 +241,12 @@ pub struct AppUi {
     pub timestamp: bool,
     #[serde(rename = "checkForUpdates")]
     pub check_for_updates: bool,
-    /// Download and install a found update right away (see `update.rs`).
+    /// Legacy configuration field. Automatic executable installation is disabled;
+    /// updates are reviewed and installed manually from the official release page.
     #[serde(rename = "autoUpdate", default)]
     pub auto_update: bool,
-    #[serde(rename = "sendTelemetry")]
+    /// Telemetry is opt-in. It sends only an anonymous app-running ping.
+    #[serde(rename = "sendTelemetry", default)]
     pub send_telemetry: bool,
     /// Keep every song downloaded from the MIDI Hub in `Midis`. When off, only the
     /// most recently played downloads are kept (see `hub::RECENT_LIMIT`).
@@ -349,10 +351,12 @@ impl ConfigStore {
         });
         let weak = Arc::downgrade(&store);
         std::thread::Builder::new()
-            .name("config-saver".into())
+            .name("config-save".into())
             .spawn(move || loop {
-                std::thread::sleep(Duration::from_millis(400));
-                let Some(store) = weak.upgrade() else { break };
+                std::thread::sleep(Duration::from_millis(250));
+                let Some(store) = weak.upgrade() else {
+                    break;
+                };
                 if store.dirty.swap(false, Ordering::AcqRel) {
                     let snapshot = store.data.read().clone();
                     snapshot.save_now();
@@ -366,17 +370,12 @@ impl ConfigStore {
         self.data.read()
     }
 
-    /// Mutates the config and schedules a save.
     pub fn update<R>(&self, f: impl FnOnce(&mut Config) -> R) -> R {
-        let r = f(&mut self.data.write());
-        self.generation.fetch_add(1, Ordering::AcqRel);
+        let mut data = self.data.write();
+        let result = f(&mut data);
         self.dirty.store(true, Ordering::Release);
-        r
-    }
-
-    /// Increments on every change; lets hot paths cache derived settings cheaply.
-    pub fn generation(&self) -> u64 {
-        self.generation.load(Ordering::Acquire)
+        self.generation.fetch_add(1, Ordering::AcqRel);
+        result
     }
 
     pub fn flush(&self) {
@@ -392,6 +391,6 @@ pub fn init() -> Arc<ConfigStore> {
     STORE.get_or_init(|| ConfigStore::new(Config::load())).clone()
 }
 
-pub fn get() -> &'static ConfigStore {
-    STORE.get().expect("config initialized")
+pub fn get() -> Arc<ConfigStore> {
+    init()
 }

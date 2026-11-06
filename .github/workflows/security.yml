@@ -1,0 +1,40 @@
+name: Security
+
+on:
+  push:
+    branches: ["main", "security/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust-security:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting of changed modules
+        run: rustfmt --check --edition 2021 src/update.rs src/net.rs
+
+      - name: Audit dependencies
+        shell: pwsh
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+
+      - name: Run tests
+        run: cargo test --locked
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features --locked -- -D warnings
