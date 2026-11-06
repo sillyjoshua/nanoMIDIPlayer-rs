@@ -94,12 +94,16 @@ pub fn is_newer(latest: &str, current: &str) -> bool {
 }
 
 pub fn busy() -> bool {
-    matches!(STATE.lock().status, Status::Checking | Status::Downloading(_))
+    matches!(
+        STATE.lock().status,
+        Status::Checking | Status::Downloading(_)
+    )
 }
 
 fn fetch_latest() -> anyhow::Result<Release> {
-    let info: Value =
-        net::get_json(&format!("https://api.github.com/repos/{REPO}/releases/latest"))?;
+    let info: Value = net::get_json(&format!(
+        "https://api.github.com/repos/{REPO}/releases/latest"
+    ))?;
     let version = info["tag_name"]
         .as_str()
         .ok_or_else(|| anyhow::anyhow!("no release found"))?
@@ -109,9 +113,7 @@ fn fetch_latest() -> anyhow::Result<Release> {
     // URL supplied by release metadata to send the user to an unrelated host.
     let page_url = info["html_url"]
         .as_str()
-        .filter(|url| {
-            url.starts_with("https://github.com/sillyjoshua/nanoMIDIPlayer-rs/releases/")
-        })
+        .filter(|url| url.starts_with("https://github.com/sillyjoshua/nanoMIDIPlayer-rs/releases/"))
         .unwrap_or(RELEASES_URL)
         .to_string();
 
@@ -191,9 +193,7 @@ pub fn install() {
         .latest
         .as_ref()
         .map(|release| release.page_url.clone())
-        .filter(|url| {
-            url.starts_with("https://github.com/sillyjoshua/nanoMIDIPlayer-rs/releases/")
-        })
+        .filter(|url| url.starts_with("https://github.com/sillyjoshua/nanoMIDIPlayer-rs/releases/"))
         .unwrap_or_else(|| RELEASES_URL.to_string());
 
     net::open_url(&url);
