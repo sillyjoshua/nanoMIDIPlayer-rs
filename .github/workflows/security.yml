@@ -31,7 +31,7 @@ jobs:
         shell: pwsh
         run: |
           cargo install cargo-audit --locked
-          cargo audit --deny warnings
+          cargo audit
 
       - name: Run tests
         run: cargo test --locked

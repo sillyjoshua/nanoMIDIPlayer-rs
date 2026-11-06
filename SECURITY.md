@@ -18,7 +18,7 @@ These behaviours are documented rather than hidden or obfuscated. Removing the h
 
 ## Updates
 
-The application checks GitHub release metadata for this repository. It does not download, execute, or replace its own executable. Users open the official GitHub release page and choose when to download and install an update.
+The application checks GitHub release metadata for this repository. It does not download, execute, or replace its own executable. Users open the official GitHub release page and choose when to download and install an update. The legacy `autoUpdate` configuration value is ignored; automatic installation is intentionally disabled.
 
 ## Telemetry
 
