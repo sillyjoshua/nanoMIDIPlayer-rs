@@ -353,6 +353,6 @@
     "tooltip": true,
     "timestamp": true,
     "checkForUpdates": true,
-    "sendTelemetry": true
+    "sendTelemetry": false
   }
 }
