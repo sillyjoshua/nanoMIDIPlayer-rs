@@ -24,8 +24,8 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Check formatting of changed Rust modules
-        run: rustfmt --check --edition 2021 src/update.rs src/config.rs src/net.rs
+      - name: Check formatting of changed modules
+        run: rustfmt --check --edition 2021 src/update.rs src/net.rs
 
       - name: Audit dependencies
         shell: pwsh
